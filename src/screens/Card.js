@@ -11,6 +11,7 @@ export default function Card(props) {
   const [size, setSize] = useState(priceOptions[0] || "");
   const priceRef = useRef();
 
+  
   let finalPrice = qty * parseInt(options[size] || 0);
 
   const handleAddToCart = async () => {

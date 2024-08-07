@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import Delete from '@mui/icons-material/Delete';
 import { useCart, useDispatchCart } from '../components/ContextReducer';
 
@@ -11,16 +11,19 @@ export default function Cart() {
       <div>
         <div className='m-5 w-100 text-center fs-3'>The Cart is Empty!</div>
       </div>
-    )
+    );
   }
 
   const handleRemove = (index) => {
-    console.log(index)
-    dispatch({ type: "REMOVE", index: index })
-  }
+    dispatch({ type: "REMOVE", index: index });
+  };
 
   const handleCheckOut = async () => {
     let userEmail = localStorage.getItem("userEmail");
+    let totalPrice = data.reduce((total, food) => total + food.price, 0);
+    let gst = totalPrice * 0.18;
+    let finalPrice = totalPrice + gst;
+
     let response = await fetch("http://localhost:5000/api/auth/OrderData", {
       method: 'POST',
       headers: {
@@ -29,18 +32,27 @@ export default function Cart() {
       body: JSON.stringify({
         order_data: data,
         email: userEmail,
+        total_price: totalPrice,
+        gst: gst,
+        final_price: finalPrice,
         order_date: new Date().toDateString()
       })
     });
-    console.log("JSON RESPONSE:::::", response.status)
+    
+
     if (response.status === 200) {
-      dispatch({ type: "DROP" })
+      dispatch({ type: "DROP" });
+      alert("Checkout successful! An email with your order details has been sent.");
     } else {
       console.error("Failed to checkout:", response.statusText);
+      alert("Checkout failed. Please try again.");
     }
-  }
+  };
 
-  let totalPrice = data.reduce((total, food) => total + food.price, 0)
+  let totalPrice = data.reduce((total, food) => total + food.price, 0);
+  let gst = totalPrice * 0.18;
+  let finalPrice = totalPrice + gst;
+
   return (
     <div>
       <div className='container m-auto mt-5 table-responsive table-responsive-sm table-responsive-md'>
@@ -66,23 +78,25 @@ export default function Cart() {
                 <td>{food.name}</td>
                 <td>{food.qty}</td>
                 <td>{food.size}</td>
-                <td>{food.price}</td>
+                <td>{food.price.toFixed(2)}</td>
                 <td>
-                  <button type="button" className="btn p-0">
-                    <Delete onClick={() => { dispatch({ type: "REMOVE", index: index }) }} />
+                  <button type="button" className="btn p-0" onClick={() => handleRemove(index)}>
+                    <Delete />
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div>
-          <h1 className='fs-2'>Total Price: {totalPrice}/-</h1>
+        <div style={{ marginTop: '20px' }}>
+          <h1 style={{ fontSize: '1.5rem' }}>Total Price: {totalPrice.toFixed(2)}/-</h1>
+          <h2 style={{ fontSize: '1.25rem' }}>GST (18%): {gst.toFixed(2)}/-</h2>
+          <h2 style={{ fontSize: '1.8rem' }}>Final Amount: {finalPrice.toFixed(2)}/-</h2>
         </div>
         <div>
           <button className='btn bg-success mt-5' onClick={handleCheckOut}> Check Out </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
